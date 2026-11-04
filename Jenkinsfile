@@ -1,31 +1,21 @@
 pipeline {
     options { timestamps() }
-    agent none
+    agent any
     stages {
         stage('Check scm') {
-            agent any
             steps {
                 checkout scm
             }
         }
         stage('Build') {
-            agent any
             steps {
                 echo "Building ...${BUILD_NUMBER}"
                 echo "Build completed"
             }
         }
         stage('Test') {
-            agent {
-                docker {
-                    image 'alpine'
-                    args '-u="root"'
-                }
-            }
             steps {
-                sh 'apk add --update python3 py-pip'
-                sh 'pip install Flask unittest-xml-reporting'
-                sh 'python3 app_tests.py'
+                bat 'docker run --rm -v "%WORKSPACE%":/app -w /app python:3.9-alpine sh -c "pip install Flask unittest-xml-reporting && python app_tests.py"'
             }
             post {
                 always {
